@@ -25,6 +25,7 @@ export const products = sqliteTable("products", {
   brand: text("brand"),
   sku: text("sku"),
   inStock: integer("in_stock", { mode: "boolean" }).default(true),
+  stockQuantity: integer("stock_quantity").default(0),
   rating: real("rating").default(0),
   reviewCount: integer("review_count").default(0),
   tags: text("tags"), // JSON array of tags
@@ -32,6 +33,10 @@ export const products = sqliteTable("products", {
   dosage: text("dosage"),
   weight: text("weight"),
   featured: integer("featured", { mode: "boolean" }).default(false),
+  badge: text("badge"), // e.g. "new", "bestseller", "sale"
+  formFactor: text("form_factor"), // Капсулы, Таблетки, etc.
+  countryOfOrigin: text("country_of_origin"),
+  quantityPerPack: text("quantity_per_pack"),
 });
 
 export const cartItems = sqliteTable("cart_items", {

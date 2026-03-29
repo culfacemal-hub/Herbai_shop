@@ -52,13 +52,18 @@ sqlite.exec(`
     brand TEXT,
     sku TEXT,
     in_stock INTEGER DEFAULT 1,
+    stock_quantity INTEGER DEFAULT 0,
     rating REAL DEFAULT 0,
     review_count INTEGER DEFAULT 0,
     tags TEXT,
     ingredients TEXT,
     dosage TEXT,
     weight TEXT,
-    featured INTEGER DEFAULT 0
+    featured INTEGER DEFAULT 0,
+    badge TEXT,
+    form_factor TEXT,
+    country_of_origin TEXT,
+    quantity_per_pack TEXT
   );
 
   CREATE TABLE IF NOT EXISTS cart_items (

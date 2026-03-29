@@ -1,498 +1,138 @@
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
-import { categories, products, reviews } from "../shared/schema";
+import { categories, products } from "../shared/schema";
+import { readFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+interface SeedCategory {
+  name: string;
+  slug: string;
+  parentName: string | null;
+  isChild: boolean;
+}
+
+interface SeedProduct {
+  name: string;
+  slug: string;
+  sku: string;
+  price: number;
+  compareAtPrice: number | null;
+  shortDescription: string;
+  description: string;
+  badge: string | null;
+  tags: string;
+  brand: string;
+  formFactor: string;
+  countryOfOrigin: string;
+  quantityPerPack: string;
+  stockQuantity: number;
+  inStock: boolean;
+  images: string;
+  imageUrl: string | null;
+  categoryName: string;
+  featured: boolean;
+}
+
+interface SeedData {
+  categories: SeedCategory[];
+  products: SeedProduct[];
+}
 
 export function runSeed(db: ReturnType<typeof drizzle>) {
-  // Seed categories
-  const categoryData = [
-    { name: "Витамины", slug: "vitaminy", description: "Витамины A, B, C, D, E, K и их комплексы", imageUrl: "./placeholder-vitamin.svg" },
-    { name: "Минералы", slug: "mineraly", description: "Кальций, магний, цинк, железо и другие минералы", imageUrl: "./placeholder-vitamin.svg" },
-    { name: "Омега и рыбий жир", slug: "omega-i-rybiy-zhir", description: "Омега-3, Омега-6, рыбий жир для здоровья сердца и мозга", imageUrl: "./placeholder-vitamin.svg" },
-    { name: "Пробиотики", slug: "probiotiki", description: "Пробиотики и пребиотики для здоровья кишечника", imageUrl: "./placeholder-vitamin.svg" },
-    { name: "Спортивное питание", slug: "sportivnoe-pitanie", description: "Протеины, аминокислоты, BCAA и другие добавки для спорта", imageUrl: "./placeholder-vitamin.svg" },
-    { name: "Для красоты", slug: "dlya-krasoty", description: "Коллаген, гиалуроновая кислота, биотин для красоты и молодости", imageUrl: "./placeholder-vitamin.svg" },
-    { name: "Детские витамины", slug: "detskie-vitaminy", description: "Витамины и добавки специально для детей", imageUrl: "./placeholder-vitamin.svg" },
-    { name: "Суперфуды", slug: "superfoody", description: "Спирулина, хлорелла, ашваганда и другие суперфуды", imageUrl: "./placeholder-vitamin.svg" },
-  ];
-
-  const insertedCategories: Record<string, number> = {};
-
-  for (const cat of categoryData) {
-    const result = db.insert(categories).values(cat).returning().get();
-    if (result) {
-      insertedCategories[cat.slug] = result.id;
+  // Load data from JSON file
+  const jsonPath = resolve(process.cwd(), "server", "seed-data.json");
+  let data: SeedData;
+  try {
+    data = JSON.parse(readFileSync(jsonPath, "utf-8"));
+  } catch {
+    // Try alternative path (production build)
+    const altPath = resolve(process.cwd(), "seed-data.json");
+    try {
+      data = JSON.parse(readFileSync(altPath, "utf-8"));
+    } catch {
+      console.error("Could not find seed-data.json");
+      return;
     }
   }
 
-  // Product data
-  const productData = [
-    {
-      name: "Витамин D3 2000 МЕ",
-      slug: "vitamin-d3-2000-me",
-      brand: "Solgar",
-      price: 1490,
-      compareAtPrice: 1890,
-      categoryId: insertedCategories["vitaminy"],
-      shortDescription: "Витамин D3 для укрепления костей, иммунитета и здоровья зубов.",
-      description: "Витамин D3 от Solgar — одна из самых биодоступных форм витамина D. Он участвует в усвоении кальция и фосфора, укрепляет кости и зубы, поддерживает иммунную систему. Особенно важен в осенне-зимний период при недостаточном солнечном освещении.",
-      ingredients: "Холекальциферол (витамин D3) 2000 МЕ, микрокристаллическая целлюлоза, дикальций фосфат, стеарат магния растительного происхождения.",
-      dosage: "1 таблетка в день во время еды.",
-      weight: "60 таблеток, 33 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["витамин D", "иммунитет", "кости", "Solgar"]),
-      featured: true,
-      rating: 4.8,
-      reviewCount: 134,
-      sku: "SOL-VD3-2000",
-      inStock: true,
-    },
-    {
-      name: "Витамин C 1000мг",
-      slug: "vitamin-c-1000mg",
-      brand: "Now Foods",
-      price: 890,
-      compareAtPrice: null,
-      categoryId: insertedCategories["vitaminy"],
-      shortDescription: "Мощный антиоксидант для укрепления иммунитета и защиты клеток.",
-      description: "Витамин C 1000мг от Now Foods — высокодозный препарат аскорбиновой кислоты с биофлавоноидами. Обладает выраженным антиоксидантным действием, стимулирует выработку коллагена и поддерживает защитные силы организма. Незаменим в период простуд и повышенных нагрузок.",
-      ingredients: "Аскорбиновая кислота 1000 мг, биофлавоноиды цитрусовых 100 мг, стеарат кальция, стеариновая кислота.",
-      dosage: "1 таблетка 1-2 раза в день во время еды.",
-      weight: "100 таблеток, 290 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["витамин C", "иммунитет", "антиоксидант", "Now Foods"]),
-      featured: true,
-      rating: 4.7,
-      reviewCount: 89,
-      sku: "NOW-VC-1000",
-      inStock: true,
-    },
-    {
-      name: "Омега-3 рыбий жир",
-      slug: "omega-3-rybiy-zhir",
-      brand: "Nordic Naturals",
-      price: 2190,
-      compareAtPrice: 2690,
-      categoryId: insertedCategories["omega-i-rybiy-zhir"],
-      shortDescription: "Высококачественный рыбий жир для здоровья сердца и мозга.",
-      description: "Омега-3 от Nordic Naturals изготавливается из дикого норвежского лосося и сардины. Содержит высокую концентрацию EPA и DHA, которые поддерживают здоровье сердечно-сосудистой системы, улучшают работу мозга и оказывают противовоспалительное действие. Сертифицирован ИФОС по чистоте и свежести.",
-      ingredients: "Концентрат рыбьего жира: EPA 650 мг, DHA 450 мг, желатиновая капсула, глицерин, вода, токоферол (витамин Е).",
-      dosage: "2 капсулы в день во время еды.",
-      weight: "60 капсул, 120 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["омега-3", "рыбий жир", "сердце", "мозг", "Nordic Naturals"]),
-      featured: true,
-      rating: 4.9,
-      reviewCount: 112,
-      sku: "NN-OM3-60",
-      inStock: true,
-    },
-    {
-      name: "Магний цитрат",
-      slug: "magniy-tsitrat",
-      brand: "Doctor's Best",
-      price: 1290,
-      compareAtPrice: null,
-      categoryId: insertedCategories["mineraly"],
-      shortDescription: "Высокоусвояемый магний для нервной системы, мышц и сна.",
-      description: "Магний цитрат от Doctor's Best — одна из самых биодоступных форм магния. Снимает мышечные спазмы, улучшает качество сна, поддерживает нервную систему и нормализует уровень стресса. Магний участвует в более чем 300 ферментативных реакциях в организме.",
-      ingredients: "Магний (в форме цитрата) 200 мг, целлюлоза, стеарат магния растительного происхождения, силикат кремния.",
-      dosage: "1-2 таблетки в день, желательно на ночь.",
-      weight: "120 таблеток, 275 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["магний", "сон", "стресс", "мышцы", "Doctor's Best"]),
-      featured: false,
-      rating: 4.7,
-      reviewCount: 76,
-      sku: "DB-MGCIT-120",
-      inStock: true,
-    },
-    {
-      name: "Пробиотик 50 млрд КОЕ",
-      slug: "probiotik-50-mlrd",
-      brand: "Garden of Life",
-      price: 2890,
-      compareAtPrice: 3490,
-      categoryId: insertedCategories["probiotiki"],
-      shortDescription: "Мощный пробиотик с 50 млрд КОЕ для здоровья кишечника.",
-      description: "Пробиотик от Garden of Life содержит 50 миллиардов КОЕ и 16 пробиотических штаммов, включая Lactobacillus и Bifidobacterium. Восстанавливает микрофлору кишечника, улучшает пищеварение, поддерживает иммунную систему. Формула устойчива к кислой среде желудка без дополнительного покрытия.",
-      ingredients: "Пробиотическая смесь (50 млрд КОЕ): L. acidophilus, L. plantarum, L. rhamnosus, L. gasseri, B. lactis, B. longum и другие штаммы. Органическая клетчатка акации.",
-      dosage: "1 капсула в день натощак или во время еды.",
-      weight: "30 капсул, 45 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["пробиотик", "кишечник", "пищеварение", "иммунитет", "Garden of Life"]),
-      featured: true,
-      rating: 4.8,
-      reviewCount: 95,
-      sku: "GOL-PRB-50B",
-      inStock: true,
-    },
-    {
-      name: "Коллаген морской",
-      slug: "kollagen-morskoy",
-      brand: "Sports Research",
-      price: 1990,
-      compareAtPrice: null,
-      categoryId: insertedCategories["dlya-krasoty"],
-      shortDescription: "Морской коллаген I типа для кожи, волос и суставов.",
-      description: "Морской коллаген от Sports Research производится из чешуи дикой морской рыбы. Содержит гидролизованный коллаген I типа с маленьким молекулярным весом для максимального усвоения. Улучшает эластичность и увлажнённость кожи, укрепляет волосы и ногти, поддерживает здоровье суставов и хрящей.",
-      ingredients: "Гидролизат морского коллагена 5000 мг, витамин C 60 мг. Капсулы: желатин, вода.",
-      dosage: "2 капсулы в день с водой или соком.",
-      weight: "90 капсул, 120 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["коллаген", "кожа", "волосы", "суставы", "Sports Research"]),
-      featured: false,
-      rating: 4.6,
-      reviewCount: 58,
-      sku: "SR-MCOL-90",
-      inStock: true,
-    },
-    {
-      name: "Мультивитамины для женщин",
-      slug: "multivitaminy-dlya-zhenshchin",
-      brand: "Rainbow Light",
-      price: 2490,
-      compareAtPrice: 2990,
-      categoryId: insertedCategories["vitaminy"],
-      shortDescription: "Комплексные мультивитамины с железом и фолиевой кислотой для женщин.",
-      description: "Мультивитамины для женщин от Rainbow Light — полный комплекс из 20+ витаминов и минералов, разработанный специально с учётом потребностей женского организма. Содержат фолиевую кислоту, железо, биотин, витамин D3 и B12. Растительная формула на основе цельных продуктов легко усваивается.",
-      ingredients: "Витамин A, C, D3, E, K, B1, B2, B3, B5, B6, B12, фолиевая кислота, биотин, кальций, железо, магний, цинк. Смесь пищевых продуктов: морковь, черника, шпинат.",
-      dosage: "1 таблетка в день во время еды.",
-      weight: "90 таблеток, 185 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["мультивитамины", "женщинам", "железо", "фолиевая кислота", "Rainbow Light"]),
-      featured: true,
-      rating: 4.7,
-      reviewCount: 103,
-      sku: "RL-MWN-90",
-      inStock: true,
-    },
-    {
-      name: "Цинк 50мг",
-      slug: "tsink-50mg",
-      brand: "Now Foods",
-      price: 690,
-      compareAtPrice: null,
-      categoryId: insertedCategories["mineraly"],
-      shortDescription: "Цинк глюконат для иммунитета, кожи и мужского здоровья.",
-      description: "Цинк глюконат от Now Foods в дозировке 50мг поддерживает иммунную систему, участвует в синтезе белка и ДНК, улучшает состояние кожи и волос. Незаменим для нормального функционирования репродуктивной системы у мужчин. Экономичная упаковка на длительный курс.",
-      ingredients: "Цинк (в форме глюконата) 50 мг, стеарат кальция, диоксид кремния.",
-      dosage: "1 таблетка в день во время еды.",
-      weight: "250 таблеток, 295 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["цинк", "иммунитет", "кожа", "Now Foods"]),
-      featured: false,
-      rating: 4.5,
-      reviewCount: 45,
-      sku: "NOW-ZN50-250",
-      inStock: true,
-    },
-    {
-      name: "Куркумин с биоперином",
-      slug: "kurkumin-s-bioperin",
-      brand: "Jarrow Formulas",
-      price: 1590,
-      compareAtPrice: 1990,
-      categoryId: insertedCategories["superfoody"],
-      shortDescription: "Куркумин с повышенной биодоступностью благодаря биоперину.",
-      description: "Куркумин от Jarrow Formulas содержит экстракт куркумы с высоким содержанием куркуминоидов (95%) в сочетании с биоперином (экстрактом чёрного перца), который увеличивает усвоение куркумина на 2000%. Обладает мощным противовоспалительным и антиоксидантным действием, поддерживает здоровье суставов и печени.",
-      ingredients: "Куркумин (экстракт куркумы, 95% куркуминоидов) 500 мг, биоперин (экстракт чёрного перца) 5 мг. Капсула: гидроксипропилметилцеллюлоза.",
-      dosage: "1 капсула 1-3 раза в день во время еды.",
-      weight: "60 капсул, 72 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["куркумин", "противовоспалительное", "суставы", "Jarrow Formulas"]),
-      featured: false,
-      rating: 4.8,
-      reviewCount: 67,
-      sku: "JF-CURC-60",
-      inStock: true,
-    },
-    {
-      name: "Железо хелат",
-      slug: "zhelezo-khelat",
-      brand: "Solgar",
-      price: 890,
-      compareAtPrice: null,
-      categoryId: insertedCategories["mineraly"],
-      shortDescription: "Мягкое хелатное железо без раздражения желудка.",
-      description: "Железо в хелатной форме от Solgar мягко усваивается без раздражения желудочно-кишечного тракта, в отличие от обычных форм железа. Необходимо для выработки гемоглобина, транспорта кислорода и предотвращения железодефицитной анемии. Рекомендуется женщинам, вегетарианцам и людям с низким уровнем гемоглобина.",
-      ingredients: "Железо (в форме бисглицината железа) 25 мг, микрокристаллическая целлюлоза, стеарат магния растительного происхождения, диоксид кремния.",
-      dosage: "1 таблетка в день между приёмами пищи.",
-      weight: "90 таблеток, 95 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["железо", "анемия", "гемоглобин", "Solgar"]),
-      featured: false,
-      rating: 4.6,
-      reviewCount: 38,
-      sku: "SOL-FE-90",
-      inStock: true,
-    },
-    {
-      name: "Витамин B12 метилкобаламин",
-      slug: "vitamin-b12-metilkobalamin",
-      brand: "Jarrow Formulas",
-      price: 790,
-      compareAtPrice: null,
-      categoryId: insertedCategories["vitaminy"],
-      shortDescription: "Активная форма B12 для нервной системы и энергии.",
-      description: "Витамин B12 в форме метилкобаламина от Jarrow Formulas — наиболее биологически активная форма, которая не требует преобразования в организме. Поддерживает нервную систему, участвует в синтезе ДНК и эритроцитов, улучшает работу мозга и снижает усталость. Особенно важен для вегетарианцев и людей старше 50 лет.",
-      ingredients: "Витамин B12 (метилкобаламин) 1000 мкг, маннит, ксилит, стеарат магния, натуральный аромат вишни.",
-      dosage: "1 таблетка в день рассасывать под языком.",
-      weight: "100 таблеток, 40 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["B12", "нервная система", "вегетарианцам", "энергия", "Jarrow Formulas"]),
-      featured: false,
-      rating: 4.7,
-      reviewCount: 82,
-      sku: "JF-B12-100",
-      inStock: true,
-    },
-    {
-      name: "Коэнзим Q10 200мг",
-      slug: "koenzim-q10-200mg",
-      brand: "Doctor's Best",
-      price: 1890,
-      compareAtPrice: 2290,
-      categoryId: insertedCategories["vitaminy"],
-      shortDescription: "Убихинол CoQ10 для здоровья сердца и клеточной энергии.",
-      description: "Коэнзим Q10 от Doctor's Best содержит 200 мг убихинона — ключевого компонента митохондриального дыхания. Поддерживает работу сердечной мышцы, повышает клеточную энергию и является мощным антиоксидантом. Особенно рекомендуется тем, кто принимает статины — препараты, снижающие уровень CoQ10 в организме.",
-      ingredients: "Коэнзим Q10 200 мг, соевое масло, желатин, глицерин, вода, пчелиный воск.",
-      dosage: "1 капсула в день во время жирной пищи.",
-      weight: "60 капсул, 100 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["CoQ10", "сердце", "энергия", "антиоксидант", "Doctor's Best"]),
-      featured: true,
-      rating: 4.8,
-      reviewCount: 71,
-      sku: "DB-COQ10-60",
-      inStock: true,
-    },
-    {
-      name: "Мультивитамины для мужчин",
-      slug: "multivitaminy-dlya-muzhchin",
-      brand: "Garden of Life",
-      price: 2690,
-      compareAtPrice: null,
-      categoryId: insertedCategories["vitaminy"],
-      shortDescription: "Органические мультивитамины с пробиотиками для мужчин.",
-      description: "Мультивитамины для мужчин от Garden of Life сделаны из органических цельных продуктов. Содержат 20+ витаминов и минералов, пробиотики и пребиотики, ферменты для лучшего усвоения. Формула учитывает специфические потребности мужского организма: цинк для тестостерона, B-витамины для энергии и ликопин для здоровья простаты.",
-      ingredients: "Витамин A, C, D3, E, K, комплекс B, кальций, магний, цинк, марганец, хром, молибден. Органическая смесь продуктов. Пробиотики 3 млрд КОЕ.",
-      dosage: "4 таблетки в день во время еды.",
-      weight: "120 таблеток, 320 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["мультивитамины", "мужчинам", "тестостерон", "Garden of Life"]),
-      featured: false,
-      rating: 4.6,
-      reviewCount: 55,
-      sku: "GOL-MVM-120",
-      inStock: true,
-    },
-    {
-      name: "Витамин Е 400 МЕ",
-      slug: "vitamin-e-400-me",
-      brand: "Solgar",
-      price: 1190,
-      compareAtPrice: null,
-      categoryId: insertedCategories["vitaminy"],
-      shortDescription: "Натуральный витамин Е d-альфа-токоферол для кожи и антиоксидантной защиты.",
-      description: "Витамин Е от Solgar содержит натуральную форму d-альфа-токоферола, которая усваивается значительно лучше синтетического аналога. Является мощным антиоксидантом, защищает клетки от окислительного стресса, улучшает состояние кожи и поддерживает иммунную систему. Полезен для здоровья сердечно-сосудистой системы.",
-      ingredients: "Витамин E (d-альфа-токоферол) 400 МЕ, соевое масло, желатин, глицерин, вода.",
-      dosage: "1 капсула в день во время еды.",
-      weight: "100 капсул, 130 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["витамин E", "антиоксидант", "кожа", "Solgar"]),
-      featured: false,
-      rating: 4.5,
-      reviewCount: 29,
-      sku: "SOL-VE400-100",
-      inStock: true,
-    },
-    {
-      name: "Кальций + D3",
-      slug: "kaltsiy-d3",
-      brand: "Now Foods",
-      price: 990,
-      compareAtPrice: null,
-      categoryId: insertedCategories["mineraly"],
-      shortDescription: "Комплекс кальция с витамином D3 для крепких костей и зубов.",
-      description: "Кальций с витамином D3 от Now Foods — классическое сочетание для здоровья костей и зубов. Витамин D3 повышает усвоение кальция в кишечнике до 60-80%. Формула поддерживает плотность костной ткани, снижает риск остеопороза и нормализует мышечную функцию. Рекомендован женщинам в период менопаузы и пожилым людям.",
-      ingredients: "Кальций (карбонат кальция, глюконат кальция) 500 мг, витамин D3 200 МЕ, стеарат магния, диоксид кремния.",
-      dosage: "2 таблетки в день во время еды.",
-      weight: "100 таблеток, 290 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["кальций", "D3", "кости", "зубы", "Now Foods"]),
-      featured: false,
-      rating: 4.5,
-      reviewCount: 43,
-      sku: "NOW-CAD3-100",
-      inStock: true,
-    },
-    {
-      name: "Детские мультивитамины",
-      slug: "detskie-multivitaminy",
-      brand: "SmartyPants",
-      price: 1790,
-      compareAtPrice: 2190,
-      categoryId: insertedCategories["detskie-vitaminy"],
-      shortDescription: "Вкусные мультивитаминные мишки для детей от 4 лет.",
-      description: "Детские мультивитамины SmartyPants в форме мишек понравятся даже самым привередливым детям. Содержат 15 питательных веществ, включая витамины D3, B12, омега-3 и фолиевую кислоту. Без искусственных красителей, подсластителей и глютена. Поддерживают иммунитет, рост и развитие нервной системы ребёнка.",
-      ingredients: "Витамин A, C, D3, E, B6, B12, фолиевая кислота, биотин, йод, цинк, рыбий жир (ДГК, ЭПК). Основа: глюкозный сироп, сахар, желатин, натуральные ароматизаторы.",
-      dosage: "4 мишки в день во время еды для детей 4+.",
-      weight: "120 мишек, 180 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["детские", "мультивитамины", "дети", "мишки", "SmartyPants"]),
-      featured: true,
-      rating: 4.9,
-      reviewCount: 147,
-      sku: "SP-KIDS-120",
-      inStock: true,
-    },
-    {
-      name: "Спирулина",
-      slug: "spirulina",
-      brand: "Hawaiian Spirulina",
-      price: 1390,
-      compareAtPrice: null,
-      categoryId: insertedCategories["superfoody"],
-      shortDescription: "Органическая гавайская спирулина — природный суперфуд с полным набором аминокислот.",
-      description: "Спирулина Hawaiian Spirulina выращивается в чистых водах Гавайев без использования пестицидов. Содержит более 60% растительного белка, все незаменимые аминокислоты, хлорофилл, B-каротин и фикоцианин. Является одним из самых питательных продуктов на Земле, поддерживает энергию, иммунитет и детоксикацию организма.",
-      ingredients: "Органическая спирулина (Arthrospira platensis) 500 мг. Без добавок.",
-      dosage: "6 таблеток в день во время еды или растворить в воде.",
-      weight: "180 таблеток, 100 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["спирулина", "суперфуд", "белок", "детокс", "Hawaiian Spirulina"]),
-      featured: false,
-      rating: 4.6,
-      reviewCount: 62,
-      sku: "HS-SPIR-180",
-      inStock: true,
-    },
-    {
-      name: "Протеин сывороточный",
-      slug: "protein-syvorotochnyy",
-      brand: "Optimum Nutrition",
-      price: 3490,
-      compareAtPrice: 3990,
-      categoryId: insertedCategories["sportivnoe-pitanie"],
-      shortDescription: "Классический сывороточный протеин Gold Standard для роста мышц.",
-      description: "Gold Standard 100% Whey от Optimum Nutrition — мировой стандарт сывороточного протеина. В каждой порции 24г белка, 5.5г BCAA и 4г глютамина. Быстро усваивается после тренировки, обеспечивает мышцы необходимыми аминокислотами. Доступен в нескольких вкусах, легко растворяется и не оставляет осадка.",
-      ingredients: "Смесь сывороточных белков (изолят, концентрат, пептиды) 30 г, какао, лецитин, ароматизатор, сукралоза.",
-      dosage: "1 мерная ложка (30 г) в 180-240 мл воды или молока после тренировки.",
-      weight: "909 г (30 порций)",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["протеин", "сывороточный", "мышцы", "спорт", "Optimum Nutrition"]),
-      featured: true,
-      rating: 4.8,
-      reviewCount: 129,
-      sku: "ON-GS100W-909",
-      inStock: true,
-    },
-    {
-      name: "Гиалуроновая кислота",
-      slug: "gialuronovaya-kislota",
-      brand: "Neocell",
-      price: 1690,
-      compareAtPrice: null,
-      categoryId: insertedCategories["dlya-krasoty"],
-      shortDescription: "Гиалуроновая кислота для увлажнения кожи изнутри.",
-      description: "Гиалуроновая кислота от Neocell содержит высокомолекулярный гиалуронат натрия, который увлажняет кожу изнутри. Наполняет клетки влагой, разглаживает морщины, придаёт коже упругость и эластичность. Гиалуроновая кислота способна удерживать влагу в 1000 раз превышающую её собственный вес.",
-      ingredients: "Гиалуронат натрия 100 мг, витамин C 60 мг, лактоза, стеарат кальция, диоксид кремния.",
-      dosage: "2 таблетки в день между приёмами пищи с большим стаканом воды.",
-      weight: "60 таблеток, 75 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["гиалуроновая кислота", "увлажнение", "кожа", "молодость", "Neocell"]),
-      featured: false,
-      rating: 4.5,
-      reviewCount: 41,
-      sku: "NC-HA-60",
-      inStock: true,
-    },
-    {
-      name: "Ашваганда KSM-66",
-      slug: "ashvaganda-ksm-66",
-      brand: "Jarrow Formulas",
-      price: 1490,
-      compareAtPrice: 1790,
-      categoryId: insertedCategories["superfoody"],
-      shortDescription: "Ашваганда KSM-66 для снятия стресса и повышения жизненной энергии.",
-      description: "Ашваганда KSM-66 от Jarrow Formulas — сертифицированный экстракт корня ашваганды с гарантированным содержанием 5% витанолидов. Клинически доказана эффективность в снижении уровня кортизола (гормона стресса), улучшении адаптации к стрессу, повышении выносливости и улучшении качества сна. Является адаптогеном, помогающим организму справляться с физическими и эмоциональными нагрузками.",
-      ingredients: "Экстракт корня ашваганды KSM-66 (Withania somnifera, стандартизирован до 5% витанолидов) 300 мг. Капсула: гидроксипропилметилцеллюлоза.",
-      dosage: "1-2 капсулы в день во время еды.",
-      weight: "60 капсул, 65 г",
-      imageUrl: "./placeholder-vitamin.svg",
-      tags: JSON.stringify(["ашваганда", "стресс", "адаптоген", "энергия", "Jarrow Formulas"]),
-      featured: true,
-      rating: 4.8,
-      reviewCount: 88,
-      sku: "JF-ASH-60",
-      inStock: true,
-    },
-  ];
+  const categoryNameToId: Record<string, number> = {};
+  const parentCatNames = new Set(
+    data.categories.filter((c) => !c.isChild).map((c) => c.name)
+  );
 
-  for (const product of productData) {
-    db.insert(products).values({
-      name: product.name,
-      slug: product.slug,
-      brand: product.brand,
-      price: product.price,
-      compareAtPrice: product.compareAtPrice ?? null,
-      categoryId: product.categoryId,
-      shortDescription: product.shortDescription,
-      description: product.description,
-      ingredients: product.ingredients,
-      dosage: product.dosage,
-      weight: product.weight,
-      imageUrl: product.imageUrl,
-      tags: product.tags,
-      featured: product.featured,
-      rating: product.rating,
-      reviewCount: product.reviewCount,
-      sku: product.sku,
-      inStock: product.inStock,
-    }).run();
-  }
-
-  // Seed some reviews
-  const reviewData = [
-    // Vitamin D3
-    { productSlug: "vitamin-d3-2000-me", author: "Анна М.", rating: 5, text: "Отличный витамин D! Принимаю уже 3 месяца, иммунитет заметно улучшился. Качество Solgar всегда на высоте.", createdAt: "2025-11-15T10:30:00Z" },
-    { productSlug: "vitamin-d3-2000-me", author: "Игорь В.", rating: 5, text: "Хорошие таблетки, легко глотаются. Анализы показали нормализацию уровня витамина D уже через 2 месяца.", createdAt: "2025-12-01T14:20:00Z" },
-    { productSlug: "vitamin-d3-2000-me", author: "Светлана К.", rating: 4, text: "Покупаю регулярно. Устраивает всё, кроме цены — хотелось бы дешевле.", createdAt: "2026-01-10T09:15:00Z" },
-    // Omega-3
-    { productSlug: "omega-3-rybiy-zhir", author: "Дмитрий П.", rating: 5, text: "Лучший рыбий жир из тех, что я пробовал. Нет рыбного запаха, хорошо усваивается. Рекомендую!", createdAt: "2025-10-20T16:45:00Z" },
-    { productSlug: "omega-3-rybiy-zhir", author: "Ольга Р.", rating: 5, text: "Брала для мужа по рекомендации кардиолога. Качество отличное, хранится хорошо.", createdAt: "2025-11-30T11:10:00Z" },
-    // Probiotic
-    { productSlug: "probiotik-50-mlrd", author: "Екатерина Н.", rating: 5, text: "После курса антибиотиков восстановилась очень быстро. Живот перестал беспокоить уже через неделю.", createdAt: "2025-12-15T13:25:00Z" },
-    { productSlug: "probiotik-50-mlrd", author: "Алексей Б.", rating: 4, text: "Хороший пробиотик, чувствуется эффект. Немного дороговато, но качество стоит этих денег.", createdAt: "2026-01-05T10:00:00Z" },
-    // Protein
-    { productSlug: "protein-syvorotochnyy", author: "Максим Т.", rating: 5, text: "Gold Standard — это классика. Отличный вкус, хорошо растворяется, результат виден уже через месяц.", createdAt: "2025-11-01T08:30:00Z" },
-    { productSlug: "protein-syvorotochnyy", author: "Виктор С.", rating: 5, text: "Использую год. Никаких проблем с пищеварением, вкус шоколада отличный. Лучший протеин в своей ценовой категории.", createdAt: "2025-12-20T17:45:00Z" },
-    // Kids vitamins
-    { productSlug: "detskie-multivitaminy", author: "Мария Г.", rating: 5, text: "Дети сами просят свои витаминки! Вкус отличный, состав хороший. Никаких капризов во время приёма.", createdAt: "2025-10-05T09:00:00Z" },
-    { productSlug: "detskie-multivitaminy", author: "Наталья Ф.", rating: 5, text: "Пьём уже год, дети болеют значительно реже. Педиатр одобрила выбор.", createdAt: "2026-02-01T14:30:00Z" },
-    // Ashwagandha
-    { productSlug: "ashvaganda-ksm-66", author: "Андрей К.", rating: 5, text: "Заметный эффект уже через 2 недели. Стресса меньше, сон улучшился, энергии больше. Однозначно рекомендую!", createdAt: "2025-11-10T12:00:00Z" },
-    { productSlug: "ashvaganda-ksm-66", author: "Людмила В.", rating: 4, text: "Хорошая ашваганда, чувствую себя спокойнее. Принимаю перед сном — засыпать стало легче.", createdAt: "2025-12-25T21:00:00Z" },
-  ];
-
-  // Get all product slugs to map to IDs
-  const allProducts = db.select().from(products).all();
-  const productSlugToId: Record<string, number> = {};
-  for (const p of allProducts) {
-    productSlugToId[p.slug] = p.id;
-  }
-
-  for (const review of reviewData) {
-    const productId = productSlugToId[review.productSlug];
-    if (productId) {
-      db.insert(reviews).values({
-        productId,
-        author: review.author,
-        rating: review.rating,
-        text: review.text,
-        createdAt: review.createdAt,
-      }).run();
+  // Insert parent categories first
+  for (const cat of data.categories) {
+    if (parentCatNames.has(cat.name)) {
+      const result = db
+        .insert(categories)
+        .values({
+          name: cat.name,
+          slug: cat.slug,
+          description: null,
+          imageUrl: null,
+          parentId: null,
+        })
+        .returning()
+        .get();
+      if (result) {
+        categoryNameToId[cat.name] = result.id;
+      }
     }
   }
 
-  console.log("Database seeded successfully with Herbai supplement data.");
+  // Insert subcategories with parentId
+  for (const cat of data.categories) {
+    if (cat.isChild && cat.parentName) {
+      const parentId = categoryNameToId[cat.parentName] ?? null;
+      const result = db
+        .insert(categories)
+        .values({
+          name: cat.name,
+          slug: cat.slug,
+          description: null,
+          imageUrl: null,
+          parentId,
+        })
+        .returning()
+        .get();
+      if (result) {
+        categoryNameToId[cat.name] = result.id;
+      }
+    }
+  }
+
+  // Insert products
+  for (const p of data.products) {
+    const categoryId = categoryNameToId[p.categoryName] ?? null;
+
+    db.insert(products)
+      .values({
+        name: p.name,
+        slug: p.slug,
+        sku: p.sku,
+        price: p.price,
+        compareAtPrice: p.compareAtPrice,
+        shortDescription: p.shortDescription,
+        description: p.description,
+        badge: p.badge,
+        tags: p.tags,
+        brand: p.brand,
+        formFactor: p.formFactor,
+        countryOfOrigin: p.countryOfOrigin,
+        quantityPerPack: p.quantityPerPack,
+        stockQuantity: p.stockQuantity,
+        inStock: p.inStock,
+        images: p.images,
+        imageUrl: p.imageUrl,
+        categoryId,
+        featured: p.featured,
+        rating: Math.round((4 + Math.random()) * 10) / 10,
+        reviewCount: Math.floor(Math.random() * 120) + 5,
+      })
+      .run();
+  }
+
+  console.log(
+    `Seeded ${data.categories.length} categories and ${data.products.length} products`
+  );
 }
