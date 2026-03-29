@@ -1,11 +1,11 @@
-import { Star, ShoppingCart, Plus } from "lucide-react";
+import { Star, ShoppingCart, Plus, Check } from "lucide-react";
 import { Link } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import type { Product } from "@shared/schema";
 import { VitaminBottleSVG } from "./VitaminBottleSVG";
 import { useAddToCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 function formatPrice(value: number): string {
   return (
@@ -44,6 +44,7 @@ interface ProductCardProps {
 export function ProductCard({ product, className = "" }: ProductCardProps) {
   const addToCart = useAddToCart();
   const { toast } = useToast();
+  const [justAdded, setJustAdded] = useState(false);
 
   const discountPercent =
     product.compareAtPrice && product.compareAtPrice > product.price
@@ -59,6 +60,8 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
       { productId: product.id, quantity: 1 },
       {
         onSuccess: () => {
+          setJustAdded(true);
+          setTimeout(() => setJustAdded(false), 1500);
           toast({
             description: `«${product.name}» добавлен в корзину`,
             duration: 2000,
@@ -79,7 +82,7 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
     <Link
       href={`/product/${product.slug}`}
       data-testid={`card-product-${product.id}`}
-      className={`group block rounded-xl border border-border bg-card hover:shadow-md transition-all duration-200 overflow-hidden ${className}`}
+      className={`group block rounded-xl border border-border bg-card overflow-hidden transition-shadow duration-300 hover:shadow-lg ${className}`}
     >
       {/* Image area */}
       <div className="relative bg-muted/30 aspect-square overflow-hidden">
@@ -87,12 +90,12 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
             loading="lazy"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center p-6">
-            <VitaminBottleSVG className="w-full h-full max-w-[120px]" />
+            <VitaminBottleSVG className="w-full h-full max-w-[120px] group-hover:scale-105 transition-transform duration-500" />
           </div>
         )}
 
@@ -113,8 +116,8 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
           )}
         </div>
 
-        {/* Quick add overlay */}
-        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-200">
+        {/* Quick add overlay — slides up on hover */}
+        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
           <button
             onClick={handleAddToCart}
             disabled={!product.inStock || addToCart.isPending}
@@ -160,14 +163,41 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
               </span>
             )}
           </div>
+
+          {/* Animated cart button */}
           <button
             onClick={handleAddToCart}
             disabled={!product.inStock || addToCart.isPending}
-            className="flex-shrink-0 h-8 w-8 flex items-center justify-center rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className={`flex-shrink-0 h-8 w-8 flex items-center justify-center rounded-lg transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed ${
+              justAdded
+                ? "bg-primary text-primary-foreground scale-110"
+                : "bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
+            }`}
             data-testid={`button-add-cart-${product.id}`}
             aria-label={`Добавить ${product.name} в корзину`}
           >
-            <ShoppingCart size={15} />
+            <AnimatePresence mode="wait">
+              {justAdded ? (
+                <motion.div
+                  key="check"
+                  initial={{ scale: 0, rotate: -90 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  exit={{ scale: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                >
+                  <Check size={15} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="cart"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                >
+                  <ShoppingCart size={15} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </button>
         </div>
       </div>

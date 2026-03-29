@@ -1,11 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { ArrowRight, Truck, ShieldCheck, Bot, ChevronRight, Leaf } from "lucide-react";
+import { motion } from "framer-motion";
 import { fetchFeaturedProducts, fetchCategories } from "@/lib/api";
 import type { Product, Category } from "@shared/schema";
 import { ProductCard } from "@/components/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import {
+  AnimatedSection,
+  StaggerGrid,
+  StaggerItem,
+  PageTransition,
+} from "@/components/AnimatedSection";
 
 const CATEGORY_ICONS: Record<string, string> = {
   vitamins: "💊",
@@ -47,8 +54,12 @@ function HeroSection() {
       />
 
       <div className="max-w-7xl mx-auto px-4 py-16 lg:py-24 grid lg:grid-cols-2 gap-8 items-center">
-        {/* Text */}
-        <div>
+        {/* Text — animate in from left */}
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+        >
           <div className="inline-flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-full mb-5">
             <Leaf size={12} />
             100% оригинальная продукция
@@ -63,7 +74,12 @@ function HeroSection() {
             Более 500 наименований витаминов, минералов и спортивных добавок от ведущих мировых производителей. Быстрая доставка СДЭК в любой город.
           </p>
 
-          <div className="flex flex-wrap gap-3">
+          <motion.div
+            className="flex flex-wrap gap-3"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+          >
             <Button
               onClick={() => navigate("/catalog")}
               size="lg"
@@ -82,75 +98,87 @@ function HeroSection() {
             >
               Категории
             </Button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        {/* Illustration */}
-        <div className="hidden lg:flex justify-center items-center">
+        {/* Illustration — animate in from right with subtle float */}
+        <motion.div
+          className="hidden lg:flex justify-center items-center"
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+        >
           <div className="relative">
-            {/* Central bottle */}
-            <svg viewBox="0 0 200 280" className="w-56 h-auto drop-shadow-xl" aria-hidden="true">
-              {/* Bottle cap */}
-              <rect x="72" y="20" width="56" height="30" rx="8" fill="hsl(152 55% 33% / 0.25)" />
-              <rect x="78" y="24" width="44" height="22" rx="5" fill="hsl(152 55% 33% / 0.4)" />
-              {/* Neck */}
-              <rect x="78" y="48" width="44" height="18" rx="4" fill="hsl(152 55% 33% / 0.2)" />
-              {/* Body */}
-              <path
-                d="M58 70 C50 76 46 90 46 108 L46 218 C46 228 55 236 66 236 L134 236 C145 236 154 228 154 218 L154 108 C154 90 150 76 142 70 Z"
-                fill="hsl(152 55% 33% / 0.1)"
-                stroke="hsl(152 55% 33% / 0.3)"
-                strokeWidth="2"
-              />
-              {/* Label */}
-              <rect x="56" y="102" width="88" height="96" rx="6" fill="hsl(152 55% 33% / 0.12)" />
-              {/* Leaf mark */}
-              <path
-                d="M88 138 C88 138 91 128 100 122 C109 116 114 119 114 119 C114 119 111 129 102 135 C93 141 88 138 88 138Z"
-                fill="hsl(152 55% 33% / 0.6)"
-              />
-              <path d="M88 138 C92 133 97 130 103 127" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-              {/* Text lines */}
-              <rect x="68" y="154" width="64" height="6" rx="3" fill="hsl(152 55% 33% / 0.3)" />
-              <rect x="74" y="166" width="52" height="5" rx="2.5" fill="hsl(152 55% 33% / 0.2)" />
-              <rect x="78" y="178" width="44" height="4" rx="2" fill="hsl(152 55% 33% / 0.15)" />
-              {/* Shine */}
-              <path d="M62 86 C60 96 58 112 58 128" stroke="white" strokeWidth="4" strokeLinecap="round" opacity="0.3" />
-            </svg>
+            {/* Subtle floating animation */}
+            <motion.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <svg viewBox="0 0 200 280" className="w-56 h-auto drop-shadow-xl" aria-hidden="true">
+                <rect x="72" y="20" width="56" height="30" rx="8" fill="hsl(152 55% 33% / 0.25)" />
+                <rect x="78" y="24" width="44" height="22" rx="5" fill="hsl(152 55% 33% / 0.4)" />
+                <rect x="78" y="48" width="44" height="18" rx="4" fill="hsl(152 55% 33% / 0.2)" />
+                <path
+                  d="M58 70 C50 76 46 90 46 108 L46 218 C46 228 55 236 66 236 L134 236 C145 236 154 228 154 218 L154 108 C154 90 150 76 142 70 Z"
+                  fill="hsl(152 55% 33% / 0.1)"
+                  stroke="hsl(152 55% 33% / 0.3)"
+                  strokeWidth="2"
+                />
+                <rect x="56" y="102" width="88" height="96" rx="6" fill="hsl(152 55% 33% / 0.12)" />
+                <path
+                  d="M88 138 C88 138 91 128 100 122 C109 116 114 119 114 119 C114 119 111 129 102 135 C93 141 88 138 88 138Z"
+                  fill="hsl(152 55% 33% / 0.6)"
+                />
+                <path d="M88 138 C92 133 97 130 103 127" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+                <rect x="68" y="154" width="64" height="6" rx="3" fill="hsl(152 55% 33% / 0.3)" />
+                <rect x="74" y="166" width="52" height="5" rx="2.5" fill="hsl(152 55% 33% / 0.2)" />
+                <rect x="78" y="178" width="44" height="4" rx="2" fill="hsl(152 55% 33% / 0.15)" />
+                <path d="M62 86 C60 96 58 112 58 128" stroke="white" strokeWidth="4" strokeLinecap="round" opacity="0.3" />
+              </svg>
+            </motion.div>
 
-            {/* Floating tags */}
-            <div className="absolute -top-4 -right-4 bg-background border border-border rounded-xl px-3 py-2 shadow-sm text-xs font-medium whitespace-nowrap">
+            {/* Floating tags with stagger */}
+            <motion.div
+              className="absolute -top-4 -right-4 bg-background border border-border rounded-xl px-3 py-2 shadow-sm text-xs font-medium whitespace-nowrap"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.6, duration: 0.4 }}
+            >
               🚚 Доставка 3–7 дней
-            </div>
-            <div className="absolute -bottom-2 -left-6 bg-primary text-primary-foreground rounded-xl px-3 py-2 shadow-sm text-xs font-medium whitespace-nowrap">
+            </motion.div>
+            <motion.div
+              className="absolute -bottom-2 -left-6 bg-primary text-primary-foreground rounded-xl px-3 py-2 shadow-sm text-xs font-medium whitespace-nowrap"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.8, duration: 0.4 }}
+            >
               ✓ 100% оригинал
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Trust badges */}
+      {/* Trust badges — stagger in */}
       <div className="max-w-7xl mx-auto px-4 pb-10">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StaggerGrid className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: <Truck size={18} />, title: "Доставка СДЭК", desc: "По всей России, 3–7 дней" },
             { icon: <ShieldCheck size={18} />, title: "100% оригинал", desc: "Сертифицированная продукция" },
             { icon: <Bot size={18} />, title: "Консультация AI", desc: "Подберём добавки именно для вас" },
           ].map((badge) => (
-            <div
-              key={badge.title}
-              className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card"
-            >
-              <div className="h-9 w-9 flex items-center justify-center rounded-lg bg-primary/10 text-primary flex-shrink-0">
-                {badge.icon}
+            <StaggerItem key={badge.title}>
+              <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card">
+                <div className="h-9 w-9 flex items-center justify-center rounded-lg bg-primary/10 text-primary flex-shrink-0">
+                  {badge.icon}
+                </div>
+                <div>
+                  <p className="text-sm font-medium">{badge.title}</p>
+                  <p className="text-xs text-muted-foreground">{badge.desc}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium">{badge.title}</p>
-                <p className="text-xs text-muted-foreground">{badge.desc}</p>
-              </div>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGrid>
       </div>
     </section>
   );
@@ -159,47 +187,36 @@ function HeroSection() {
 function CategoriesSection({ categories }: { categories: Category[] }) {
   return (
     <section id="categories-section" className="max-w-7xl mx-auto px-4 py-12">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold tracking-tight">Категории</h2>
-        <Link href="/catalog" className="text-sm text-primary flex items-center gap-1 hover:underline" data-testid="link-all-categories">
-          Все
-          <ChevronRight size={14} />
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {categories.map((cat) => (
-          <Link
-            key={cat.id}
-            href={`/catalog/${cat.slug}`}
-            data-testid={`card-category-${cat.id}`}
-            className="group flex flex-col items-center gap-3 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-primary/5 transition-all duration-200 text-center"
-          >
-            <div className="text-2xl">{CATEGORY_ICONS[cat.slug] || "🌿"}</div>
-            <span className="text-xs font-medium leading-snug">{cat.name}</span>
+      <AnimatedSection>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold tracking-tight">Категории</h2>
+          <Link href="/catalog" className="text-sm text-primary flex items-center gap-1 hover:underline" data-testid="link-all-categories">
+            Все
+            <ChevronRight size={14} />
           </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
+        </div>
+      </AnimatedSection>
 
-function FeaturedSection({ products }: { products: Product[] }) {
-  return (
-    <section className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold tracking-tight">Популярные товары</h2>
-        <Link href="/catalog" className="text-sm text-primary flex items-center gap-1 hover:underline" data-testid="link-all-products">
-          Смотреть все
-          <ChevronRight size={14} />
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+      <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {categories.map((cat) => (
+          <StaggerItem key={cat.id}>
+            <Link
+              href={`/catalog/${cat.slug}`}
+              data-testid={`card-category-${cat.id}`}
+              className="group flex flex-col items-center gap-3 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-primary/5 transition-all duration-200 text-center"
+            >
+              <motion.div
+                className="text-2xl"
+                whileHover={{ scale: 1.2, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 300, damping: 15 }}
+              >
+                {CATEGORY_ICONS[cat.slug] || "🌿"}
+              </motion.div>
+              <span className="text-xs font-medium leading-snug">{cat.name}</span>
+            </Link>
+          </StaggerItem>
         ))}
-      </div>
+      </StaggerGrid>
     </section>
   );
 }
@@ -242,7 +259,7 @@ export default function Home() {
     : (featuredData as any)?.products ?? [];
 
   return (
-    <div>
+    <PageTransition>
       <HeroSection />
 
       {/* Categories */}
@@ -254,22 +271,26 @@ export default function Home() {
 
       {/* Featured products */}
       <section className="max-w-7xl mx-auto px-4 py-10">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold tracking-tight">Популярные товары</h2>
-          <Link href="/catalog" className="text-sm text-primary flex items-center gap-1 hover:underline" data-testid="link-featured-all">
-            Смотреть все
-            <ChevronRight size={14} />
-          </Link>
-        </div>
+        <AnimatedSection>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold tracking-tight">Популярные товары</h2>
+            <Link href="/catalog" className="text-sm text-primary flex items-center gap-1 hover:underline" data-testid="link-featured-all">
+              Смотреть все
+              <ChevronRight size={14} />
+            </Link>
+          </div>
+        </AnimatedSection>
 
         {featuredLoading ? (
           <ProductSkeletonGrid count={8} />
         ) : featuredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <StaggerGrid className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <StaggerItem key={product.id}>
+                <ProductCard product={product} />
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGrid>
         ) : (
           <div className="text-center py-16 text-muted-foreground">
             <p className="text-sm">Товары скоро появятся</p>
@@ -279,6 +300,6 @@ export default function Home() {
           </div>
         )}
       </section>
-    </div>
+    </PageTransition>
   );
 }

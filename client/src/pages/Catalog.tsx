@@ -7,6 +7,7 @@ import type { Product, Category } from "@shared/schema";
 import { ProductCard } from "@/components/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { PageTransition, StaggerGrid, StaggerItem } from "@/components/AnimatedSection";
 import {
   Sheet,
   SheetContent,
@@ -223,7 +224,7 @@ export default function Catalog() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <PageTransition className="max-w-7xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-6" aria-label="Breadcrumb">
         <a href="/#/" className="hover:text-foreground transition-colors">Главная</a>
@@ -304,11 +305,13 @@ export default function Catalog() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <StaggerGrid className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <StaggerItem key={product.id}>
+                    <ProductCard product={product} />
+                  </StaggerItem>
                 ))}
-              </div>
+              </StaggerGrid>
 
               {/* Pagination */}
               {totalPages > 1 && (
@@ -340,6 +343,6 @@ export default function Catalog() {
           )}
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { PageTransition } from "@/components/AnimatedSection";
 import {
   Form,
   FormControl,
@@ -127,7 +128,7 @@ export default function Checkout() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <PageTransition className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-xl font-semibold tracking-tight mb-8" data-testid="text-checkout-title">
         Оформление заказа
       </h1>
@@ -387,6 +388,6 @@ export default function Checkout() {
           </div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }

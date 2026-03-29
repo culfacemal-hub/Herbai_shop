@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ProductCard } from "@/components/ProductCard";
 import { VitaminBottleSVG } from "@/components/VitaminBottleSVG";
 import { Button } from "@/components/ui/button";
+import { PageTransition, AnimatedSection } from "@/components/AnimatedSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -140,7 +141,7 @@ export default function ProductDetail() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <PageTransition className="max-w-7xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-6 flex-wrap" aria-label="Breadcrumb">
         <Link href="/" className="hover:text-foreground transition-colors">Главная</Link>
@@ -393,6 +394,6 @@ export default function ProductDetail() {
           </div>
         </section>
       )}
-    </div>
+    </PageTransition>
   );
 }
