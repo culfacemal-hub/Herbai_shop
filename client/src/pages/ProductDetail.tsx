@@ -317,9 +317,11 @@ export default function ProductDetail() {
 
         <TabsContent value="description" className="pt-6">
           {product.description ? (
-            <div className="text-sm text-foreground leading-relaxed max-w-2xl whitespace-pre-wrap" data-testid="text-product-description">
-              {product.description}
-            </div>
+            <div
+              className="product-html text-sm text-foreground leading-relaxed max-w-3xl"
+              data-testid="text-product-description"
+              dangerouslySetInnerHTML={{ __html: product.description }}
+            />
           ) : (
             <p className="text-sm text-muted-foreground">Описание не указано</p>
           )}
@@ -327,9 +329,11 @@ export default function ProductDetail() {
 
         <TabsContent value="ingredients" className="pt-6">
           {product.ingredients ? (
-            <div className="text-sm text-foreground leading-relaxed max-w-2xl whitespace-pre-wrap" data-testid="text-product-ingredients">
-              {product.ingredients}
-            </div>
+            <div
+              className="product-html text-sm text-foreground leading-relaxed max-w-3xl"
+              data-testid="text-product-ingredients"
+              dangerouslySetInnerHTML={{ __html: product.ingredients }}
+            />
           ) : (
             <p className="text-sm text-muted-foreground">Состав не указан</p>
           )}
@@ -337,9 +341,11 @@ export default function ProductDetail() {
 
         <TabsContent value="dosage" className="pt-6">
           {product.dosage ? (
-            <div className="text-sm text-foreground leading-relaxed max-w-2xl whitespace-pre-wrap" data-testid="text-product-dosage">
-              {product.dosage}
-            </div>
+            <div
+              className="product-html text-sm text-foreground leading-relaxed max-w-3xl"
+              data-testid="text-product-dosage"
+              dangerouslySetInnerHTML={{ __html: product.dosage }}
+            />
           ) : (
             <p className="text-sm text-muted-foreground">Рекомендации по дозировке не указаны</p>
           )}

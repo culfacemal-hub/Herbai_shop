@@ -210,3 +210,89 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
+
+/* ─── Product HTML content (from ShopScript descriptions) ─── */
+.product-html {
+  line-height: 1.7;
+}
+.product-html h3,
+.product-html h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  color: hsl(var(--foreground));
+}
+.product-html h3:first-child,
+.product-html h4:first-child {
+  margin-top: 0;
+}
+.product-html p {
+  margin-bottom: 0.75em;
+}
+.product-html ul,
+.product-html ol {
+  margin: 0.5em 0 1em 0;
+  padding-left: 1.25em;
+}
+.product-html ul {
+  list-style: disc;
+}
+.product-html ol {
+  list-style: decimal;
+}
+.product-html li {
+  margin-bottom: 0.35em;
+  padding-left: 0.25em;
+}
+.product-html strong,
+.product-html b {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+.product-html table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.8125rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+.product-html thead {
+  background: hsl(var(--muted) / 0.5);
+}
+.product-html th {
+  font-weight: 600;
+  text-align: left;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: 0.8125rem;
+  color: hsl(var(--foreground));
+}
+.product-html td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+  vertical-align: top;
+}
+.product-html tr:last-child td {
+  border-bottom: none;
+}
+.product-html tr:nth-child(even) {
+  background: hsl(var(--muted) / 0.2);
+}
+.product-html figure {
+  margin: 1em 0;
+}
+.product-html figure img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+.product-html a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+}
+.product-html br + br {
+  display: none;
+}
